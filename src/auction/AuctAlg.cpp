@@ -1,9 +1,4 @@
-#include "AuctAlg.h" 
-#ifdef NT_PORT
-#include <common_incl.h>
-#include <minmax.h>  
-#pragma warning (disable : 4786)  
-#endif 
+#include "AuctAlg.h"
 
 using namespace mtl;
 
@@ -18,7 +13,7 @@ int AuctAlg::totalpay (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S) {
   for (row = 0; row<Sh.nrows(); row++) {
     colind.clear(); colmult.clear();
     // This loop over the Shape row pointers is over row multiplicities
-    for (fullrow = Sh.get_rowptr(row); fullrow < Sh.get_rowptr(row+1); 
+    for (fullrow = Sh.get_rowptr(row); fullrow < Sh.get_rowptr(row+1);
 	 fullrow++) {
       col = Sh.get_colmap(S.col(fullrow))+1;   // AuctPay indexes from 1.
       if (col != -1) colind.push_back(col);
@@ -45,10 +40,10 @@ int AuctAlg::totalpay (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S) {
 }
 
 // Implement the auction algorithm
-AuctMetric AuctAlg::auctionF (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S, 
+AuctMetric AuctAlg::auctionF (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S,
 		    AuctParm& Prms)
 {
-  int N = Sh.nrows(), M = Sh.ncols(), NNZ = Sh.nnz(); 
+  int N = Sh.nrows(), M = Sh.ncols(), NNZ = Sh.nnz();
   int Nf=Sh.nfullrows(), Mf=Sh.nfullcols();
   int maxcycles = Prms.get_maxcycles();
 
@@ -58,7 +53,7 @@ AuctMetric AuctAlg::auctionF (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S,
   bool MULTI = (Nf == N && Mf == M)? false : true;
   bool EScale = Prms.EScale(), DEBUG = Prms.DEBUG(), MESSG = Prms.MESSG();
   if (MESSG) cerr << "Using multiple rows/cols? : " << MULTI << endl;
-  
+
   AuctMetric metric;
 
   // Check consistency of inputs.
@@ -85,14 +80,14 @@ AuctMetric AuctAlg::auctionF (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S,
   // done in a temporary matrix of doubles (ScA), which is cast to
   // integer in a copy command.
   //
-  InMat input (N, M, NNZ, Pay.get_valpt(), Pay.get_rowpt(), 
+  InMat input (N, M, NNZ, Pay.get_valpt(), Pay.get_rowpt(),
 	       Pay.get_indpt());
 
   bool reorient_flag = (Nf > Mf) ? true : false;
   metric.set_reoriented(reorient_flag);
   if (reorient_flag) std::swap(N,M);
   IMat A(N,M);
-  
+
   if (reorient_flag) {
     if (MESSG) cerr << "Reorienting payoff matrix" << endl;
     Sh.transpose();
@@ -104,31 +99,31 @@ AuctMetric AuctAlg::auctionF (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S,
     mtl::scale(A, (min(N, M)+1));
   }
 
-  if (DEBUG) cerr << "A has "<< A.nrows() << " rows and " 
+  if (DEBUG) cerr << "A has "<< A.nrows() << " rows and "
 		  << A.ncols() << " cols." << endl;
-  if (DEBUG) cerr << "input has "<< input.nrows() << " rows and " 
+  if (DEBUG) cerr << "input has "<< input.nrows() << " rows and "
 		  << input.ncols() << " cols." << endl;
 
   // Loop over auction rounds until associated
-  int assoc_thresh = min(Nf, Mf);  
+  int assoc_thresh = min(Nf, Mf);
   metric.set_nmaxassoc(assoc_thresh);
   int cycles=0;
   int epsstart;
   int epsfac   = Prms.get_epsfac();
-  epsstart = (Prms.epsrelative()) 
-    ? (int)(min(N,M) * Prms.get_epsstart() / Prms.get_res()) 
+  epsstart = (Prms.epsrelative())
+    ? (int)(min(N,M) * Prms.get_epsstart() / Prms.get_res())
     : (int)Prms.get_epsstart();
   if (epsstart < 2 || epsfac < 2) epsstart = 1;
-  
-  if (EScale) {  
-    int eps; 
+
+  if (EScale) {
+    int eps;
     for (eps=epsstart; eps > 1 && cycles < maxcycles; eps=eps/epsfac) {
       Prms.set_epsilon(eps);
       S.blank();
       if (MESSG) cerr << "Starting epsilon cycle: " << eps << endl;
       while (S.nassoc() < assoc_thresh && cycles < maxcycles) {
 	while (S.nassoc() < assoc_thresh && cycles < maxcycles) {
-	  cycles++;	
+	  cycles++;
 	  if (DEBUG) cout << "Cycle: " << cycles << endl;
 	  if (MULTI) {
 	    AuctAlg::auct_cycle_SM(A, Sh, S, Prms);
@@ -139,7 +134,7 @@ AuctMetric AuctAlg::auctionF (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S,
 	S.hidden_bid(Sh, Prms);
       }
     }
-    
+
     // An opportunity to ditch if the number of cycles has hit the maximum
     if (cycles >= maxcycles) {
       metric.set_ncycles(cycles); metric.set_nauction_assoc(S.nassoc());
@@ -158,10 +153,10 @@ AuctMetric AuctAlg::auctionF (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S,
   if (EScale) {
     Prms.set_epsilon(1);
   } else {
-    Prms.set_epsilon(epsstart);  
-  }  
-  if (MESSG) cerr << "Starting epsilon cycle: " << Prms.get_epsilon() << endl;  
-  S.blank();  
+    Prms.set_epsilon(epsstart);
+  }
+  if (MESSG) cerr << "Starting epsilon cycle: " << Prms.get_epsilon() << endl;
+  S.blank();
   while (S.nassoc() < assoc_thresh && cycles < maxcycles) {
     while (S.nassoc() < assoc_thresh && cycles < maxcycles) {
       cycles++;
@@ -174,23 +169,23 @@ AuctMetric AuctAlg::auctionF (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S,
     }
     if (EScale) S.hidden_bid(Sh, Prms);
   }
-  
+
   if (DEBUG) AuctAlg::checkecs(A, Sh, S, Prms);
-  
-  metric.set_ncycles(cycles); 
+
+  metric.set_ncycles(cycles);
   metric.set_nauction_assoc(S.nassoc());
 
   // Again, greedy fill if we timed out
   if (cycles >= maxcycles) {
     metric.set_timed_out(true);
     AuctAlg::greedy_fill (A, Sh, S, Prms);
-  } 
+  }
 
   if (reorient_flag) {
     Sh.transpose();
     S.transpose();
   }
-  
+
   metric.set_ntotal_assoc(S.nassoc());
   return metric;
 }
@@ -201,9 +196,9 @@ AuctMetric AuctAlg::auctionF (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S,
 // and puts the output into y.
 void AuctAlg::ctransp (InMat& x, IMat& y) {
 
-  typedef mtl::matrix<int, mtl::rectangle<>, mtl::compressed<int, mtl::external, 
+  typedef mtl::matrix<int, mtl::rectangle<>, mtl::compressed<int, mtl::external,
 	  mtl::index_from_zero>, mtl::row_major>::type IMatExt;
-  
+
   int N = x.nrows(), M = x.ncols(), NNZ = x.nnz();
 
   InMat::iterator k;
@@ -215,13 +210,13 @@ void AuctAlg::ctransp (InMat& x, IMat& y) {
   int curpt = 0;
   int i,j;
 
-  ind = new int [N];  
+  ind = new int [N];
   npt = new int [M+1];
   nval = new int [NNZ];
   nind = new int [NNZ];
 
   for (j=0; j<N; j++) ind[j] = -1;
-  
+
   for (k=x.begin(); k<x.end(); k++) {
     tk = (*k).begin();
     if (tk < (*k).end()) {
@@ -239,7 +234,7 @@ void AuctAlg::ctransp (InMat& x, IMat& y) {
 	nind[curpt] = iter[j].row();
 	curpt++;
 	iter[j]++;
-	ind[j] = (iter[j] < iter_end[j]) ? iter[j].column() : -1; 
+	ind[j] = (iter[j] < iter_end[j]) ? iter[j].column() : -1;
       }
     }
   }
@@ -254,7 +249,7 @@ void AuctAlg::ctransp (InMat& x, IMat& y) {
 // of the Association Matrix, and the Prices. e-CS is a necessary
 // condition for optimality, and a full e-CS association with small
 // enough e-CS is guaranteed to be optimal.
-void AuctAlg::checkecs (IMat& A,AuctShape& Sh,AuctAssoc& S,AuctParm& Prms) { 
+void AuctAlg::checkecs (IMat& A,AuctShape& Sh,AuctAssoc& S,AuctParm& Prms) {
 
   int diff;
   int tmp, aij, p;
@@ -294,32 +289,32 @@ void AuctAlg::checkecs (IMat& A,AuctShape& Sh,AuctAssoc& S,AuctParm& Prms) {
 	  maxcolS = colS;
 	  maxpr  = p;
 	  maxaij = aij;
-      } 
+      }
     }
-    diff =  maxval - bestval; 
+    diff =  maxval - bestval;
     if (diff > Prms.get_epsilon()) {
-      cout << "CS violation at (row,col): (" << 
+      cout << "CS violation at (row,col): (" <<
 	rowA << "," << bestcol << ")" << " mxcol: " << maxcol <<
-	"  val: " << bestval << "  maxval:" << maxval << 	
-	"  P:" << bestpr << " maxpr:" << maxpr <<  
+	"  val: " << bestval << "  maxval:" << maxval <<
+	"  P:" << bestpr << " maxpr:" << maxpr <<
 	endl;
       cout << "                           colid:" << bestcolS <<
 	"  best aij:" << bestaij << "  maxcolid:" << maxcolS <<
 	"  max aij:" << maxaij << endl;
     }
-  }    
-	  
+  }
+
   minassign = S.get_minassoc();
   maxunass = S.get_maxunass();
   cout << "lambda: " << maxunass << "  Min Assign: " << minassign << endl;
-  
+
 }
 
 // This subroutine runs if the number of auction cycles hits the
 // maximum allowed.  It greedily makes some associations to improve the
 // partial answer offered by the auction algorithm.
-void AuctAlg::greedy_fill (IMat& A, AuctShape& Sh, AuctAssoc& S, 
-			   AuctParm& Prms) { 
+void AuctAlg::greedy_fill (IMat& A, AuctShape& Sh, AuctAssoc& S,
+			   AuctParm& Prms) {
 
   int maxbid, maxbidcol, assoccol;
   IMat::OneD::iterator j;
@@ -331,8 +326,8 @@ void AuctAlg::greedy_fill (IMat& A, AuctShape& Sh, AuctAssoc& S,
       maxbid = -Prms.get_MAXINT();
       for (j = A[Sh.get_rowmap(i)].begin(); j<A[Sh.get_rowmap(i)].end(); j++) {
 		assoccol = -1;
-	    if (maxbid < *j) {	  
-	  for (int k=Sh.get_colptr(j.column()); 
+	    if (maxbid < *j) {
+	  for (int k=Sh.get_colptr(j.column());
 	       k<Sh.get_colptr(j.column()+1); k++) {
 	    if (S.row(k) == -1) {
 	      assoccol = k;
@@ -357,7 +352,7 @@ void AuctAlg::greedy_fill (IMat& A, AuctShape& Sh, AuctAssoc& S,
 // Template library.  The matrix is stored sparsely
 // (column-compressed) but may be accessed using row and column
 // iterators, which automatically skip over the empty entries.
-// 
+//
 // Sh is the Auction "shape" structure.  This stores the size of A, as
 // well as the multiplicities of each row and column of A.  It has
 // methods to map between the "full" association matrix, S, (with each
@@ -370,15 +365,15 @@ void AuctAlg::greedy_fill (IMat& A, AuctShape& Sh, AuctAssoc& S,
 //
 // Prms is the Auction parameters structure
 //
-void AuctAlg::auct_cycle_SM (IMat& A, AuctShape& Sh, AuctAssoc& S, 
+void AuctAlg::auct_cycle_SM (IMat& A, AuctShape& Sh, AuctAssoc& S,
 				AuctParm& Prms) {
-  
+
   int NEGLARGE = -Prms.get_MAXINT();
   int epsilon = Prms.get_epsilon();
-  
+
   IMat::iterator i;
   IMat::OneD::iterator j;
-    
+
   PreBidClassMult curshop, empty;
   std::list<PreBidClassMult> shoplist;
   std::list<PreBidClassMult>::iterator si;
@@ -394,12 +389,12 @@ void AuctAlg::auct_cycle_SM (IMat& A, AuctShape& Sh, AuctAssoc& S,
 
   bool DEBUG = Prms.DEBUG();
 
-  // Compute bids, submitting as many bids as possible for each A row.  
+  // Compute bids, submitting as many bids as possible for each A row.
 
   // Loop over rows of A
   for (i = A.begin(); i < A.end(); i++) {
     rowA = ((*i).begin()).row();
-    
+
     // Build list of occupied columns and free rows corrsp. to this A row.
     freerow_flag = false;
     usedcols.clear(); freerows.clear();
@@ -412,13 +407,13 @@ void AuctAlg::auct_cycle_SM (IMat& A, AuctShape& Sh, AuctAssoc& S,
       }
     }
 
-    if (DEBUG) cout << "On A row " << rowA << " currently has " 
+    if (DEBUG) cout << "On A row " << rowA << " currently has "
 		    << freerows.size() << " free rows" << endl;
 
     // If there are any free rows, then find bids for them.  This is
     // done by assembling a "shopping list" of the top value columns to
     // be bid upon.
-    if (freerow_flag) {      
+    if (freerow_flag) {
       shoplist.clear();
       shoplist.insert(shoplist.begin(), freerows.size()+1, empty);
 
@@ -426,19 +421,19 @@ void AuctAlg::auct_cycle_SM (IMat& A, AuctShape& Sh, AuctAssoc& S,
       for (j = (*i).begin(); j < (*i).end(); j++) {
 	curshop.grp = j.column();
 
-	// Loop over cooresponding columns of S.  
-	for (colS = Sh.get_colptr(curshop.grp); 
+	// Loop over cooresponding columns of S.
+	for (colS = Sh.get_colptr(curshop.grp);
 	     colS < Sh.get_colptr(curshop.grp+1); colS++) {
-	  curshop.js = colS;	      
+	  curshop.js = colS;
 	  curshop.v  = *j - S.Price(colS); // value = payoff - price
-	  
-	  // Insert into the shopping list if appropriate.  To decide, 
-	  // run down the list, considering several properties: 
+
+	  // Insert into the shopping list if appropriate.  To decide,
+	  // run down the list, considering several properties:
 	  //
 	  // P1: list entry value >= curshop.v
 	  // P2: curshop.js already taken (i.e. is in usedcols list)
 	  // P3: list entry group == curshop.grp
-	  // 
+	  //
 	  // The decision tree is a follows:
 	  //   Case 1: P1                   step to next list value
 	  //   Case 2: !P1 & P2             end (forget this S column)
@@ -449,19 +444,19 @@ void AuctAlg::auct_cycle_SM (IMat& A, AuctShape& Sh, AuctAssoc& S,
 	      si++;
 	    } else {
 	      ui = std::find(usedcols.begin(), usedcols.end(), curshop.js);
-	      if (ui != usedcols.end()) {        
+	      if (ui != usedcols.end()) {
 		si = shoplist.end();             // Case 2: end
 	      } else {
-		shoplist.insert(si,curshop);     // Case 3: insert 
+		shoplist.insert(si,curshop);     // Case 3: insert
 		shoplist.pop_back();
 		si = shoplist.end();
 	      }
 	    }
-	  } // end loop over shopping list	  
+	  } // end loop over shopping list
 	} // end loop over S cols corresponding to this A col
       } // end loop over columns of A
 
-      // Construct reference from last member of the shopping list 
+      // Construct reference from last member of the shopping list
       refgroup = shoplist.front().grp;
       refval   = shoplist.back().v;
       shoplist.pop_back();
@@ -474,7 +469,7 @@ void AuctAlg::auct_cycle_SM (IMat& A, AuctShape& Sh, AuctAssoc& S,
 	// reference value from a distinct group.
 	groupmatch_flag = true;
 	si = shoplist.begin();
-	while (++si != shoplist.end() && groupmatch_flag) 
+	while (++si != shoplist.end() && groupmatch_flag)
 	  groupmatch_flag = si->grp == refgroup;
 
 	if (groupmatch_flag) {                    // Reference is unsuitable
@@ -492,23 +487,23 @@ void AuctAlg::auct_cycle_SM (IMat& A, AuctShape& Sh, AuctAssoc& S,
 	} // end if block (for recomputing reference value)
 
 	// Make the bids for each row in freerows.
-	for (si = shoplist.begin(), ui = freerows.begin(); 
+	for (si = shoplist.begin(), ui = freerows.begin();
 	     si != shoplist.end(); si++, ui++) {
 	  S.add (*ui, si->js);
 	  S.set_Price(si->js, S.Price(si->js) + si->v - refval + epsilon);
 	  if (DEBUG) {
 	    cout << "Submitted a bid for ("<<*ui<<","<<si->js<<") for "
 		 << "value " << si->v << " reference " << refval << endl;
-	  }	
+	  }
 	} // end for loop over bids
       } // end if non-empty row
-    } // end if block (for unassociated entries) 
-  } // end loop over rows 
+    } // end if block (for unassociated entries)
+  } // end loop over rows
 }
 
 // Auction Cycle, with only single rows/columns, without profits calculations.
 // Gauss-Seidel version (i.e. bids executed as made).
-void AuctAlg::auct_cycle_SP1 (IMat& A, AuctShape& Sh, AuctAssoc& S, 
+void AuctAlg::auct_cycle_SP1 (IMat& A, AuctShape& Sh, AuctAssoc& S,
 			   AuctParm& Prms) {
 
 
@@ -528,7 +523,7 @@ void AuctAlg::auct_cycle_SP1 (IMat& A, AuctShape& Sh, AuctAssoc& S,
   // Loop over nonempty rows of A
   for (i = A.begin(); i < A.end(); i++) {
     rowA = ((*i).begin()).row();
-    if (DEBUG) cout << "On row " << rowA << " currently associated to " 
+    if (DEBUG) cout << "On row " << rowA << " currently associated to "
 		    << S.col(rowA) << endl;
     if (S.col(rowA) == -1) {
       shoplist.clear();
@@ -537,9 +532,9 @@ void AuctAlg::auct_cycle_SP1 (IMat& A, AuctShape& Sh, AuctAssoc& S,
 
       // Loop over nonempty columns of A, insertion sort for top two vals.
       for (j = (*i).begin(); j < (*i).end(); j++) {
-	curshop.js = j.column();	      
+	curshop.js = j.column();
 	curshop.v  = *j - S.Price(curshop.js);
-	si = shoplist.begin(); 
+	si = shoplist.begin();
 	while (si != shoplist.end()) {
 	  if  (curshop.v > si->v) {
 	    shoplist.insert(si, curshop);
@@ -548,21 +543,21 @@ void AuctAlg::auct_cycle_SP1 (IMat& A, AuctShape& Sh, AuctAssoc& S,
 	  } else si++;
 	}
       } // end loop over columns of A
-      
+
       // Only assign the row if it is non-empty
       si = shoplist.begin();
-      if (si->js != -1) { 
+      if (si->js != -1) {
 	snxt = si; ++snxt;
 	S.add (rowA, si->js);
 	S.set_Price(si->js, S.Price(si->js) + si->v - snxt->v + epsilon);
-	if (DEBUG) cout << "Added (" << rowA << "," << si->js 
+	if (DEBUG) cout << "Added (" << rowA << "," << si->js
 			<< ") for price " << S.Price(rowA) << endl;
       } // end if non-empty row
-    } // end if block (for unassociated entries) 
+    } // end if block (for unassociated entries)
   } // end loop over rows of A
 }
 
-void AuctAlg::auct_cycle_SP2 (IMat& A, AuctShape& Sh, AuctAssoc& S, 
+void AuctAlg::auct_cycle_SP2 (IMat& A, AuctShape& Sh, AuctAssoc& S,
 			   AuctParm& Prms) {
 
   // This version: NO has multiple rows/columns, YES has profits. (plain 2).
@@ -592,9 +587,9 @@ void AuctAlg::auct_cycle_SP2 (IMat& A, AuctShape& Sh, AuctAssoc& S,
 
       // Loop over nonempty columns of A, insertion sort for top two values
       for (j = (*i).begin(); j < (*i).end(); j++) {
-	curshop.js = j.column();	      
+	curshop.js = j.column();
 	curshop.v  = *j - S.Price(curshop.js);
-	si = shoplist.begin(); 
+	si = shoplist.begin();
 	while (si != shoplist.end()) {
 	  if  (curshop.v > si->v) {
 	    shoplist.insert(si, curshop);
@@ -603,17 +598,15 @@ void AuctAlg::auct_cycle_SP2 (IMat& A, AuctShape& Sh, AuctAssoc& S,
 	  } else si++;
 	}
       } // end loop over columns of A
-      
+
       // Only assign the row if it is non-empty
       si = shoplist.begin();
-      if (si->js != -1) { 
+      if (si->js != -1) {
 	snxt = si; ++snxt;
 	S.add (rowA, si->js);
 	S.set_Price (si->js, S.Price(si->js) + si->v - snxt->v + epsilon);
 	S.set_Prof(rowA, snxt->v - epsilon);
       } // end if non-empty row
-    } // end if block (for unassociated entries) 
+    } // end if block (for unassociated entries)
   } // end loop over rows of A
 }
-
-

@@ -1,6 +1,3 @@
-#ifdef NT_PORT
-#include <minmax.h>
-#endif
 
 #include <vector>
 #include <algorithm>
@@ -23,7 +20,7 @@ AuctAssoc::AuctAssoc(int N, int M) : AssocMatrix::AssocMatrix(N,M) {
   std::fill (profits, profits+Nrows, 0);
 }
 
-AuctAssoc::AuctAssoc (AuctShape& S) : 
+AuctAssoc::AuctAssoc (AuctShape& S) :
   AssocMatrix::AssocMatrix(S.nfullrows(), S.nfullcols()) {
   prices = new int[Ncols];
   std::fill (prices, prices+Ncols, 0);
@@ -62,7 +59,7 @@ int AuctAssoc::min_price_in_colrange (int first, int last) {
 }
 
 int AuctAssoc::max_price_in_rowrange (int first, int last) {
-  int mpir=0, col;    
+  int mpir=0, col;
   for (int j=first; j<last; j++) {
     col = AssocMatrix::col(j);
     if (col >= 0)
@@ -88,7 +85,7 @@ int AuctAssoc::min_price_in_rowrange (int first, int last) {
 int AuctAssoc::get_minassoc() {
   bool start = true;
   int col, minassoc = 0;
-  
+
   for (int i = 0; i<Nrows; i++) {
     col = AssocMatrix::col(i);
     if (col >= 0)
@@ -153,10 +150,10 @@ class IndVal {
 };
 
 void AuctAssoc::hidden_bid(AuctShape& Sh, AuctParm& Param) {
-  std::vector <IndVal<int> > assocprice, unassocprice; 
+  std::vector <IndVal<int> > assocprice, unassocprice;
   int i, rowa, cola;
   int minassoc=Param.get_MAXINT(), maxunass=0;
-  
+
   // separate Prices into Associated, and unassociated and sort.
   for (i = 0; i < Ncols; i++) {
     if (AssocMatrix::row(i)>=0) {
@@ -167,35 +164,35 @@ void AuctAssoc::hidden_bid(AuctShape& Sh, AuctParm& Param) {
       maxunass = (maxunass < prices[i]) ? prices[i] : maxunass;
     }
   }
-  
+
   int nbids = Ncols - Nrows;
   nbids = min (nbids, (int)assocprice.size());
   nbids = min (nbids, (int)unassocprice.size());
-  
+
   if ((nbids > 0) && (minassoc < maxunass)) {
-    
+
     // The associated are in acending and unassociated in decending order.
-    std::partial_sort(assocprice.begin(), assocprice.end(), 
+    std::partial_sort(assocprice.begin(), assocprice.end(),
          assocprice.begin() + nbids, std::less<IndVal<int> > ());
-    std::partial_sort(unassocprice.begin(), unassocprice.end(), 
+    std::partial_sort(unassocprice.begin(), unassocprice.end(),
          unassocprice.begin() + nbids, std::greater<IndVal<int> > ());
-    
+
     for(i=0; i < nbids && assocprice[i].value < unassocprice[i].value; i++) {
       cola = assocprice[i].index;
       rowa = AssocMatrix::row(cola);
       AssocMatrix::clear_pair(rowa, cola);
       minassoc = assocprice[i].value;
     }
-    
+
     for (unsigned int j = abs(i); j < unassocprice.size(); j++) {
       prices[unassocprice[j].index] = minassoc;
     }
-    
+
   } else {
     for (i=0; i<(int)unassocprice.size(); i++) {
-      prices[unassocprice[i].index] = minassoc - 1;    
-    }   
-  }   
+      prices[unassocprice[i].index] = minassoc - 1;
+    }
+  }
 }
 
 // A method to reset the prices to the max within a row group
@@ -215,7 +212,7 @@ void AuctAssoc::group_price_equalize(AuctShape& Sh) {
 
 // Get the number of associations associated with (i,j) of the AuctPay matrix
 int AuctAssoc::numAssoc (AuctShape& Sh, int i, int j) {
-  return AssocMatrix::blockval (Sh.get_rowptr(i), Sh.get_rowptr(i+1), 
+  return AssocMatrix::blockval (Sh.get_rowptr(i), Sh.get_rowptr(i+1),
 				Sh.get_colptr(j), Sh.get_colptr(j+1));
 }
 
@@ -227,7 +224,7 @@ void AuctAssoc::getrowassign (AuctShape& Sh, std::vector<int>& ovec) {
       ovec.push_back( Sh.get_colmap( col(i) ) );
   }
 
-// Output assignments: rows of AssocMatrix --> columns of AssocMatrix 
+// Output assignments: rows of AssocMatrix --> columns of AssocMatrix
 void AuctAssoc::getrowassign_id (AuctShape& Sh, std::vector<int>& ovec) {
   ovec.clear();
     for (int i = 0; i < Nrows; i++)

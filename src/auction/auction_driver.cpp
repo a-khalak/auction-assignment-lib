@@ -1,33 +1,28 @@
 
-#ifdef NT_PORT
-#pragma warning (disable : 4786)
-#include <common_incl.h>
-#endif
-
 #include <iostream>
 #include <fstream>
 #include <time.h>
 #include <string>
 #include "AuctAlg.h"
 
-void adriver_timeprint (clock_t &current, clock_t &total, 
+void adriver_timeprint (clock_t &current, clock_t &total,
 			  clock_t & prev, const string& op="");
 
 
 int main()
 {
-  
+
   clock_t prev, total, current;
   int i, j;
 
   // Read in user input
   char in_file[255], out_file[255], rmult_file[255], cmult_file[255];
-  int nrow, ncol;  
+  int nrow, ncol;
   cerr << "Enter input filename:  "; cin >> in_file;
   cerr << "Enter output filename: "; cin >> out_file;
   cerr << "Number of Rows:        "; cin >> nrow;
   cerr << "Number of Columns:     "; cin >> ncol;
-  
+
   adriver_timeprint (current, total, prev);
 
   // create a vector of a vector of doubles (row-oriented matrix)
@@ -36,11 +31,11 @@ int main()
   for (i = 0; i < nrow; i++) values[i].resize(ncol);
 
   // Loads the payoff matrix from an ascii file, presumably from Matlab
-  std::ifstream fin(in_file, ios::in); 
-  for (i = 0; i < nrow; i++) {	
+  std::ifstream fin(in_file, ios::in);
+  for (i = 0; i < nrow; i++) {
     for (int j = 0; j < ncol; j++) {
-      fin >> values[i][j];	  
-    }    	
+      fin >> values[i][j];
+    }
   }
   fin.close();
 
@@ -49,12 +44,12 @@ int main()
   int nrmult, ncmult;
   cout << "Number of row multiples (0 to specify file): " ; cin >> nrmult;
   if (nrmult <= 0) {
-      cout << "Enter input file of row multiplicities:      " ; 
+      cout << "Enter input file of row multiplicities:      " ;
       cin >> rmult_file;
   }
   cout << "Number of col multiples (0 to specify file): " ; cin >> ncmult;
   if (ncmult <= 0) {
-      cout << "Enter input file of col multiplicities:      " ; 
+      cout << "Enter input file of col multiplicities:      " ;
       cin >> cmult_file;
   }
 
@@ -100,7 +95,7 @@ cout << "The value of ZZ is " << zz << endl;
   Shape.ifcompute();
   AuctPay   Payoff(Parameters, Shape, values);
   AuctAssoc Associations(Shape);
-  cout << "Full rows: " << Shape.nfullrows() 
+  cout << "Full rows: " << Shape.nfullrows()
        << "    Full cols: " << Shape.nfullcols() << endl;
   cout << "Number of Non-zeros: " << Shape.nnz() << endl;
   adriver_timeprint (current, total, prev,  "constructing Auction inputs");
@@ -119,22 +114,22 @@ cout << "The value of ZZ is " << zz << endl;
   if (!metric.isfeasible()) cout << " not";
   cout << " feasible. " << endl;
 
-  cout << "Number associated " 
-       << metric.nauction_assoc() << " by auction, " 
+  cout << "Number associated "
+       << metric.nauction_assoc() << " by auction, "
        << metric.ntotal_assoc() << " total, with minassoc ="
        << metric.nmaxassoc() << endl;
 
   cout << "Type of auction: ";
   if (!metric.escaling()) cout << "no ";
   cout << "E-Scaling.   ";
-  if (metric.rowmults() || metric.colmults()) cout << "multiple"; 
+  if (metric.rowmults() || metric.colmults()) cout << "multiple";
   else cout << "single";
   cout << " rows/columns   ";
   if (!metric.reoriented()) cout << "not";
   cout << " reoriented " << endl;
 
   cout << endl;
-  cout << "Total associated payoff: " 
+  cout << "Total associated payoff: "
        << x.totalpay(Payoff, Shape, Associations)
        << endl << endl;
 
@@ -144,8 +139,8 @@ cout << "The value of ZZ is " << zz << endl;
   std:: ofstream fout(out_file, ios::out);
 
   switch (2) {
-  
-  case 1: 
+
+  case 1:
     // option 1, output the raw association matrix
     for (i = 0; i < Shape.nfullrows(); i++) {
       for (j = 0; j < Shape.nfullcols(); j++) {
@@ -154,7 +149,7 @@ cout << "The value of ZZ is " << zz << endl;
       fout << endl;
     }
     break;
-   
+
   case 2:
     // option 2, output an association matrix the same size as the input
     // payoff with each entry being the total _number_ associated
@@ -197,13 +192,13 @@ cout << "The value of ZZ is " << zz << endl;
   return 0;
 }
 
-void adriver_timeprint (clock_t &current, clock_t &total, 
+void adriver_timeprint (clock_t &current, clock_t &total,
 			  clock_t & prev, const string& op) {
- 
+
   total = clock(); current = total - prev; prev = total;
 
   if (op.length() > 0) {
   cout << "Done with " << op << ". Operation took ";
   cout << 1000.0*current/CLOCKS_PER_SEC << "ms" << endl;
-  }  
+  }
 }
