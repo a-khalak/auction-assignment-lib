@@ -1,5 +1,3 @@
-#define A_STD
-
 #include <algorithm>
 #include "AssocMatrix.h"
 
@@ -10,8 +8,8 @@ AssocMatrix::AssocMatrix(int N) {
   Nnz = 0;
   rowassign = new int[N];
   colassign = new int[N];
-  A_STD fill (rowassign, rowassign+N, -1);
-  A_STD fill (colassign, colassign+N, -1);
+  std:: fill (rowassign, rowassign+N, -1);
+  std:: fill (colassign, colassign+N, -1);
 }
 
 AssocMatrix::AssocMatrix(int N, int M) {
@@ -20,8 +18,8 @@ AssocMatrix::AssocMatrix(int N, int M) {
   Nnz = 0;
   rowassign = new int[Ncols];
   colassign = new int[Nrows];
-  A_STD fill (rowassign, rowassign+Ncols, -1);
-  A_STD fill (colassign, colassign+Nrows, -1);
+  std:: fill (rowassign, rowassign+Ncols, -1);
+  std:: fill (colassign, colassign+Nrows, -1);
 }
 
 // destructor
@@ -32,12 +30,12 @@ AssocMatrix::~AssocMatrix() {
 
 // look up lists of columns association with each row
 void AssocMatrix::get_columns(int *column_by_row) {
-  A_STD copy(colassign, colassign+Nrows, column_by_row);
+  std:: copy(colassign, colassign+Nrows, column_by_row);
 }
 
 // look up lists of rows associated w/ each column
 void AssocMatrix::get_rows(int *row_by_column) {
-  A_STD copy(rowassign, rowassign+Ncols, row_by_column);
+  std:: copy(rowassign, rowassign+Ncols, row_by_column);
 }
 
 // Add an entry to the assocmatrix, clearing other entries if necessary

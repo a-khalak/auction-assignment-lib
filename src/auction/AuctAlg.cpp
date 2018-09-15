@@ -93,10 +93,10 @@ AuctMetric AuctAlg::auctionF (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S,
     Sh.transpose();
     S.transpose();
     AuctAlg::ctransp(input, A);
-    mtl::scale(A, (min(N, M)+1));
+    mtl::scale(A, (std:: min(N, M)+1));
   } else {
     A.fast_copy(input);
-    mtl::scale(A, (min(N, M)+1));
+    mtl::scale(A, (std:: min(N, M)+1));
   }
 
   if (DEBUG) cerr << "A has "<< A.nrows() << " rows and "
@@ -105,13 +105,13 @@ AuctMetric AuctAlg::auctionF (AuctPay& Pay, AuctShape& Sh, AuctAssoc& S,
 		  << input.ncols() << " cols." << endl;
 
   // Loop over auction rounds until associated
-  int assoc_thresh = min(Nf, Mf);
+  int assoc_thresh = std:: min(Nf, Mf);
   metric.set_nmaxassoc(assoc_thresh);
   int cycles=0;
   int epsstart;
   int epsfac   = Prms.get_epsfac();
   epsstart = (Prms.epsrelative())
-    ? (int)(min(N,M) * Prms.get_epsstart() / Prms.get_res())
+    ? (int)(std:: min(N,M) * Prms.get_epsstart() / Prms.get_res())
     : (int)Prms.get_epsstart();
   if (epsstart < 2 || epsfac < 2) epsstart = 1;
 

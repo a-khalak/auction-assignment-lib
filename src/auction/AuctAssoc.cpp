@@ -166,8 +166,8 @@ void AuctAssoc::hidden_bid(AuctShape& Sh, AuctParm& Param) {
   }
 
   int nbids = Ncols - Nrows;
-  nbids = min (nbids, (int)assocprice.size());
-  nbids = min (nbids, (int)unassocprice.size());
+  nbids = std:: min (nbids, (int)assocprice.size());
+  nbids = std:: min (nbids, (int)unassocprice.size());
 
   if ((nbids > 0) && (minassoc < maxunass)) {
 
