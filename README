@@ -3,4 +3,22 @@ This directory contains a generic implementation of the Bertsekas auction algori
 see Bertsekas, D.P.  Linear Network Optimization: Algorithms and Codes,
     Cambridge, MA.  MIT Press.  1991.
 
-This particular version contains extra features which resolves problems with the stock algorithm when dealing with identical rows and indentical columns.  The c++ code was written in the 2000-2001 timeframe, and is being slowly modernized.  
+This particular version contains extra features which resolves problems with the stock algorithm when dealing with identical rows and indentical columns.  The c++ code was written in the 2000-2001 timeframe, and is being slowly modernized.
+
+Build status
+------------
+
+Unfortunately, after removing some of the NT cruft, and some initial cleanup, the build dependency on the included MTL2.0 version did not work.  This was attempted using the rikorose/gcc-cmake Docker image for the build system.  The latest MTL library version, 4.0, is about 10 years old and has deep dependencies to the boost linear algebra library, which is not easily built with the aforementioned docker image to build.
+
+What is known is that the code was last successfully built with a 2002 era version of the matrix template library (MTL2.0) which does not seem to build using a current version of make/gcc.  Some suggested strategies at this point are to
+
+(a) move from an existing docker image for the build system to a custom cloud image to manually explore dependencies and get a working build of the matrix library dependencies
+
+(b) explore prebuilt versions of MTL4.0 for ubuntu and modify the auction code to hook into these.
+
+(c) explore migrating from MTL2.0 to Eigen which seems to have more active development and therefore should be easier to build over the long term.
+
+Other
+-----
+
+In general, this library will need python hooks to make it easy to link into datasets for analysis and testing.  Separately, will need to explore whether there are prebuilt containers for building and testing c++ libraries with hooks into python3.
