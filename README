@@ -1,67 +1,6 @@
-This directory contains a generic implementation of the 
-Bertsekas auction algorithm for asymmetric assignment.
+This directory contains a generic implementation of the Bertsekas auction algorithm for asymmetric assignment.
 
 see Bertsekas, D.P.  Linear Network Optimization: Algorithms and Codes,
     Cambridge, MA.  MIT Press.  1991.
 
-This particular version contains extra features, beyond those described
-in the reference above, which allow the algorithm to avoid problems with
-identical rows and indentical columns.  These add-ons to the algorithm
-are described, among other places, in
-
-    Castanon, D.A., Athans, M., Hatch, K., Sandell, N., Stonestreet, W.,
-    Trivizas, D., and Tsaknakis, H,   Advanced Weapon Target Assignment
-    Algorithms Program Algorithm Approaches Report., Alphatech Report TR-428,
-    May 1989. and in Appendix A, in particular.
-
-
-Files: 
-
-AssocMatrix.h
-AssocMatrix.cc      - Code for Association Matrix Class, efficient 
-			representation of 1-1 correspondence.
-Makefile
-README
-auction.cc          - Auction Algorithm.
-auction.h           - Contains helper classes for constructing inputs, 
-			should be included in wrapper code
-auction_driver.cc   - This wrapper reads data from a file and stores the
-                        non-zero entries in compressed-row Sparse Matrix
-			format.  The input objects to the auction algorithm
-			are constructed with compressed-row inputs. 
-auction_driver2.cc  - This wrapper reads data from a file and stores it
-                        in a dense matrix (i.e. vector of vectors).  This
-			version uses a constructor for the input objects
-			that automatically converts from dense format to
-			compressed-row (i.e. sparse) format for use in the 
-                        auction algorithm.
-
-###############################################################################
-Porting notes for NT(VC++ 6.0):
-
-1. In order to compile on NT, the file mtl_set.h needs to comment out the 
-   template mtl::set(...){...} or put it between the preprocessor directives:
-   #ifndef NT_PORT
-   #endif
-
-2. mtl lib for different platform are kept in different directories:
-   Unix-   src/auction/unix/mtl      - path set in auction.mak & Makefile
-   NT  -   src/auction/nt/mtl        - path set in auction.dsp & auction.dsw
-
-###############################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+This particular version contains extra features which resolves problems with the stock algorithm when dealing with identical rows and indentical columns.  The c++ code was written in the 2000-2001 timeframe, and is being slowly modernized.  
